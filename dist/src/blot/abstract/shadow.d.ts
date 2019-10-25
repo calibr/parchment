@@ -6,6 +6,8 @@ declare class ShadowBlot implements Blot {
     static className: string;
     static scope: Registry.Scope;
     static tagName: string;
+    _isAttached: boolean;
+    _isDetached: boolean;
     prev: Blot;
     next: Blot;
     parent: Parent;
@@ -14,6 +16,7 @@ declare class ShadowBlot implements Blot {
     static create(value: any): Node;
     constructor(domNode: Node);
     attach(): void;
+    ensureScrollIsAssigned(): void;
     clone(): Blot;
     detach(): void;
     deleteAt(index: number, length: number): void;

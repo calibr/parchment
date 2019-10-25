@@ -135,18 +135,18 @@ export function register(...Definitions: any[]): any {
 export function attachOnce(blot: Blot): void {
   blot.ensureScrollIsAssigned();
   if (blot._isAttached) {
-    return
+    return;
   }
-  blot.attach()
-  blot._isDetached = false
-  blot._isAttached = true
+  blot.attach();
+  blot._isDetached = false;
+  blot._isAttached = true;
 }
 
 export function detachOnce(blot: Blot): void {
   if (blot._isDetached) {
-    return
+    return;
   }
-  blot.detach()
-  blot._isDetached = true
-  blot._isAttached = false
+  blot.detach();
+  blot._isDetached = true;
+  blot._isAttached = false;
 }

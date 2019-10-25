@@ -227,9 +227,22 @@ function register() {
 }
 exports.register = register;
 function attachOnce(blot) {
+    blot.ensureScrollIsAssigned();
+    if (blot._isAttached) {
+        return;
+    }
+    blot.attach();
+    blot._isDetached = false;
+    blot._isAttached = true;
 }
 exports.attachOnce = attachOnce;
 function detachOnce(blot) {
+    if (blot._isDetached) {
+        return;
+    }
+    blot.detach();
+    blot._isDetached = true;
+    blot._isAttached = false;
 }
 exports.detachOnce = detachOnce;
 
@@ -327,10 +340,16 @@ var ContainerBlot = /** @class */ (function (_super) {
     ContainerBlot.prototype.appendChild = function (other) {
         this.insertBefore(other);
     };
+    ContainerBlot.prototype.ensureScrollIsAssigned = function () {
+        _super.prototype.ensureScrollIsAssigned.call(this);
+        this.children.forEach(function (child) {
+            child.ensureScrollIsAssigned();
+        });
+    };
     ContainerBlot.prototype.attach = function () {
         _super.prototype.attach.call(this);
         this.children.forEach(function (child) {
-            child.attach();
+            Registry.attachOnce(child);
         });
     };
     ContainerBlot.prototype.build = function () {
@@ -555,7 +574,7 @@ function makeBlot(node) {
             if (node.parentNode) {
                 node.parentNode.replaceChild(blot.domNode, node);
             }
-            blot.attach();
+            Registry.attachOnce(blot);
         }
     }
     return blot;
@@ -706,6 +725,8 @@ var Registry = __webpack_require__(0);
 var ShadowBlot = /** @class */ (function () {
     function ShadowBlot(domNode) {
         this.domNode = domNode;
+        this._isAttached = false;
+        this._isDetached = false;
         // @ts-ignore
         this.domNode[Registry.DATA_KEY] = { blot: this };
     }
@@ -747,7 +768,8 @@ var ShadowBlot = /** @class */ (function () {
         }
         return node;
     };
-    ShadowBlot.prototype.attach = function () {
+    ShadowBlot.prototype.attach = function () { };
+    ShadowBlot.prototype.ensureScrollIsAssigned = function () {
         if (this.parent != null) {
             this.scroll = this.parent.scroll;
         }
@@ -797,7 +819,7 @@ var ShadowBlot = /** @class */ (function () {
             parentBlot.domNode.insertBefore(this.domNode, refDomNode);
         }
         this.parent = parentBlot;
-        this.attach();
+        Registry.attachOnce(this);
     };
     ShadowBlot.prototype.isolate = function (index, length) {
         var target = this.split(index);
@@ -1289,7 +1311,7 @@ var ScrollBlot = /** @class */ (function (_super) {
             _this.update(mutations);
         });
         _this.observer.observe(_this.domNode, OBSERVER_CONFIG);
-        _this.attach();
+        Registry.attachOnce(_this);
         return _this;
     }
     ScrollBlot.prototype.detach = function () {

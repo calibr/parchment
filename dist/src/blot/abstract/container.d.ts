@@ -8,6 +8,7 @@ declare class ContainerBlot extends ShadowBlot implements Parent {
     domNode: HTMLElement;
     constructor(domNode: Node);
     appendChild(other: Blot): void;
+    ensureScrollIsAssigned(): void;
     attach(): void;
     build(): void;
     deleteAt(index: number, length: number): void;
