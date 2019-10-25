@@ -19,10 +19,17 @@ class ContainerBlot extends ShadowBlot implements Parent {
     this.insertBefore(other);
   }
 
+  ensureScrollIsAssigned(): void {
+    super.ensureScrollIsAssigned();
+    this.children.forEach(child => {
+      child.ensureScrollIsAssigned();
+    });
+  }
+
   attach(): void {
     super.attach();
     this.children.forEach(child => {
-      child.attach();
+      Registry.attachOnce(child)
     });
   }
 
@@ -259,7 +266,7 @@ function makeBlot(node: Node): Blot {
       if (node.parentNode) {
         node.parentNode.replaceChild(blot.domNode, node);
       }
-      blot.attach();
+      Registry.attachOnce(blot);
     }
   }
   return blot;

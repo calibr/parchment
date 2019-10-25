@@ -7,6 +7,9 @@ class ShadowBlot implements Blot {
   static scope: Registry.Scope;
   static tagName: string;
 
+  _isAttached: boolean = false;
+  _isDetached: boolean = false;
+
   // @ts-ignore
   prev: Blot;
   // @ts-ignore
@@ -54,7 +57,9 @@ class ShadowBlot implements Blot {
     this.domNode[Registry.DATA_KEY] = { blot: this };
   }
 
-  attach(): void {
+  attach() {}
+
+  ensureScrollIsAssigned() {
     if (this.parent != null) {
       this.scroll = this.parent.scroll;
     }
@@ -107,7 +112,7 @@ class ShadowBlot implements Blot {
       parentBlot.domNode.insertBefore(this.domNode, refDomNode);
     }
     this.parent = parentBlot;
-    this.attach();
+    Registry.attachOnce(this);
   }
 
   isolate(index: number, length: number): Blot {

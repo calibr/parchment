@@ -2,6 +2,9 @@ import LinkedList from '../../collection/linked-list';
 import LinkedNode from '../../collection/linked-node';
 
 export interface Blot extends LinkedNode {
+  _isAttached: boolean;
+  _isDetached: boolean;
+
   scroll: Parent;
   parent: Parent;
   prev: Blot;
@@ -9,6 +12,7 @@ export interface Blot extends LinkedNode {
   domNode: Node;
 
   attach(): void;
+  ensureScrollIsAssigned(): void;
   clone(): Blot;
   detach(): void;
   insertInto(parentBlot: Parent, refBlot?: Blot): void;
