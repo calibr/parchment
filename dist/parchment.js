@@ -79,20 +79,34 @@ return /******/ (function(modules) { // webpackBootstrap
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-class ParchmentError extends Error {
-    constructor(message) {
+var ParchmentError = /** @class */ (function (_super) {
+    __extends(ParchmentError, _super);
+    function ParchmentError(message) {
+        var _this = this;
         message = '[Parchment] ' + message;
-        super(message);
-        this.message = message;
-        this.name = this.constructor.name;
+        _this = _super.call(this, message) || this;
+        _this.message = message;
+        _this.name = _this.constructor.name;
+        return _this;
     }
-}
+    return ParchmentError;
+}(Error));
 exports.ParchmentError = ParchmentError;
-let attributes = {};
-let classes = {};
-let tags = {};
-let types = {};
+var attributes = {};
+var classes = {};
+var tags = {};
+var types = {};
 exports.DATA_KEY = '__blot';
 var Scope;
 (function (Scope) {
@@ -109,18 +123,19 @@ var Scope;
     Scope[Scope["ANY"] = 15] = "ANY";
 })(Scope = exports.Scope || (exports.Scope = {}));
 function create(input, value) {
-    let match = query(input);
+    var match = query(input);
     if (match == null) {
-        throw new ParchmentError(`Unable to create ${input} blot`);
+        throw new ParchmentError("Unable to create " + input + " blot");
     }
-    let BlotClass = match;
-    let node = 
+    var BlotClass = match;
+    var node = 
     // @ts-ignore
     input instanceof Node || input['nodeType'] === Node.TEXT_NODE ? input : BlotClass.create(value);
     return new BlotClass(node, value);
 }
 exports.create = create;
-function find(node, bubble = false) {
+function find(node, bubble) {
+    if (bubble === void 0) { bubble = false; }
     if (node == null)
         return null;
     // @ts-ignore
@@ -131,8 +146,9 @@ function find(node, bubble = false) {
     return null;
 }
 exports.find = find;
-function query(query, scope = Scope.ANY) {
-    let match;
+function query(query, scope) {
+    if (scope === void 0) { scope = Scope.ANY; }
+    var match;
     if (typeof query === 'string') {
         match = types[query] || attributes[query];
         // @ts-ignore
@@ -149,8 +165,8 @@ function query(query, scope = Scope.ANY) {
         }
     }
     else if (query instanceof HTMLElement) {
-        let names = Array.from(query.classList);
-        for (let i in names) {
+        var names = Array.from(query.classList);
+        for (var i in names) {
             match = classes[names[i]];
             if (match)
                 break;
@@ -165,13 +181,17 @@ function query(query, scope = Scope.ANY) {
     return null;
 }
 exports.query = query;
-function register(...Definitions) {
+function register() {
+    var Definitions = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        Definitions[_i] = arguments[_i];
+    }
     if (Definitions.length > 1) {
         return Definitions.map(function (d) {
             return register(d);
         });
     }
-    let Definition = Definitions[0];
+    var Definition = Definitions[0];
     if (typeof Definition.blotName !== 'string' && typeof Definition.attrName !== 'string') {
         throw new ParchmentError('Invalid definition');
     }
@@ -195,7 +215,7 @@ function register(...Definitions) {
             else {
                 Definition.tagName = Definition.tagName.toUpperCase();
             }
-            let tagNames = Array.isArray(Definition.tagName) ? Definition.tagName : [Definition.tagName];
+            var tagNames = Array.isArray(Definition.tagName) ? Definition.tagName : [Definition.tagName];
             tagNames.forEach(function (tag) {
                 if (tags[tag] == null || Definition.className == null) {
                     tags[tag] = Definition;
@@ -234,17 +254,13 @@ exports.detachOnce = detachOnce;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Registry = __webpack_require__(0);
-class Attributor {
-    static keys(node) {
-        return [].map.call(node.attributes, function (item) {
-            return item.name;
-        });
-    }
-    constructor(attrName, keyName, options = {}) {
+var Registry = __webpack_require__(0);
+var Attributor = /** @class */ (function () {
+    function Attributor(attrName, keyName, options) {
+        if (options === void 0) { options = {}; }
         this.attrName = attrName;
         this.keyName = keyName;
-        let attributeBit = Registry.Scope.TYPE & Registry.Scope.ATTRIBUTE;
+        var attributeBit = Registry.Scope.TYPE & Registry.Scope.ATTRIBUTE;
         if (options.scope != null) {
             // Ignore type bits, force attribute bit
             this.scope = (options.scope & Registry.Scope.LEVEL) | attributeBit;
@@ -255,14 +271,19 @@ class Attributor {
         if (options.whitelist != null)
             this.whitelist = options.whitelist;
     }
-    add(node, value) {
+    Attributor.keys = function (node) {
+        return [].map.call(node.attributes, function (item) {
+            return item.name;
+        });
+    };
+    Attributor.prototype.add = function (node, value) {
         if (!this.canAdd(node, value))
             return false;
         node.setAttribute(this.keyName, value);
         return true;
-    }
-    canAdd(node, value) {
-        let match = Registry.query(node, Registry.Scope.BLOT & (this.scope | Registry.Scope.TYPE));
+    };
+    Attributor.prototype.canAdd = function (node, value) {
+        var match = Registry.query(node, Registry.Scope.BLOT & (this.scope | Registry.Scope.TYPE));
         if (match == null)
             return false;
         if (this.whitelist == null)
@@ -273,18 +294,19 @@ class Attributor {
         else {
             return this.whitelist.indexOf(value) > -1;
         }
-    }
-    remove(node) {
+    };
+    Attributor.prototype.remove = function (node) {
         node.removeAttribute(this.keyName);
-    }
-    value(node) {
-        let value = node.getAttribute(this.keyName);
+    };
+    Attributor.prototype.value = function (node) {
+        var value = node.getAttribute(this.keyName);
         if (this.canAdd(node, value) && value) {
             return value;
         }
         return '';
-    }
-}
+    };
+    return Attributor;
+}());
 exports.default = Attributor;
 
 
@@ -294,40 +316,53 @@ exports.default = Attributor;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const linked_list_1 = __webpack_require__(11);
-const shadow_1 = __webpack_require__(5);
-const Registry = __webpack_require__(0);
-class ContainerBlot extends shadow_1.default {
-    constructor(domNode) {
-        super(domNode);
-        this.build();
+var linked_list_1 = __webpack_require__(11);
+var shadow_1 = __webpack_require__(5);
+var Registry = __webpack_require__(0);
+var ContainerBlot = /** @class */ (function (_super) {
+    __extends(ContainerBlot, _super);
+    function ContainerBlot(domNode) {
+        var _this = _super.call(this, domNode) || this;
+        _this.build();
+        return _this;
     }
-    appendChild(other) {
+    ContainerBlot.prototype.appendChild = function (other) {
         this.insertBefore(other);
-    }
-    ensureScrollIsAssigned() {
-        super.ensureScrollIsAssigned();
-        this.children.forEach(child => {
+    };
+    ContainerBlot.prototype.ensureScrollIsAssigned = function () {
+        _super.prototype.ensureScrollIsAssigned.call(this);
+        this.children.forEach(function (child) {
             child.ensureScrollIsAssigned();
         });
-    }
-    attach() {
-        super.attach();
-        this.children.forEach(child => {
+    };
+    ContainerBlot.prototype.attach = function () {
+        _super.prototype.attach.call(this);
+        this.children.forEach(function (child) {
             Registry.attachOnce(child);
         });
-    }
-    build() {
+    };
+    ContainerBlot.prototype.build = function () {
+        var _this = this;
         this.children = new linked_list_1.default();
         // Need to be reversed for if DOM nodes already in order
         [].slice
             .call(this.domNode.childNodes)
             .reverse()
-            .forEach((node) => {
+            .forEach(function (node) {
             try {
-                let child = makeBlot(node);
-                this.insertBefore(child, this.children.head || undefined);
+                var child = makeBlot(node);
+                _this.insertBefore(child, _this.children.head || undefined);
             }
             catch (err) {
                 if (err instanceof Registry.ParchmentError)
@@ -336,17 +371,17 @@ class ContainerBlot extends shadow_1.default {
                     throw err;
             }
         });
-    }
-    deleteAt(index, length) {
+    };
+    ContainerBlot.prototype.deleteAt = function (index, length) {
         if (index === 0 && length === this.length()) {
             return this.remove();
         }
         this.children.forEachAt(index, length, function (child, offset, length) {
             child.deleteAt(offset, length);
         });
-    }
-    descendant(criteria, index) {
-        let [child, offset] = this.children.find(index);
+    };
+    ContainerBlot.prototype.descendant = function (criteria, index) {
+        var _a = this.children.find(index), child = _a[0], offset = _a[1];
         if ((criteria.blotName == null && criteria(child)) ||
             (criteria.blotName != null && child instanceof criteria)) {
             return [child, offset];
@@ -357,10 +392,12 @@ class ContainerBlot extends shadow_1.default {
         else {
             return [null, -1];
         }
-    }
-    descendants(criteria, index = 0, length = Number.MAX_VALUE) {
-        let descendants = [];
-        let lengthLeft = length;
+    };
+    ContainerBlot.prototype.descendants = function (criteria, index, length) {
+        if (index === void 0) { index = 0; }
+        if (length === void 0) { length = Number.MAX_VALUE; }
+        var descendants = [];
+        var lengthLeft = length;
         this.children.forEachAt(index, length, function (child, index, length) {
             if ((criteria.blotName == null && criteria(child)) ||
                 (criteria.blotName != null && child instanceof criteria)) {
@@ -372,52 +409,52 @@ class ContainerBlot extends shadow_1.default {
             lengthLeft -= length;
         });
         return descendants;
-    }
-    detach() {
+    };
+    ContainerBlot.prototype.detach = function () {
         this.children.forEach(function (child) {
             child.detach();
         });
-        super.detach();
-    }
-    formatAt(index, length, name, value) {
+        _super.prototype.detach.call(this);
+    };
+    ContainerBlot.prototype.formatAt = function (index, length, name, value) {
         this.children.forEachAt(index, length, function (child, offset, length) {
             child.formatAt(offset, length, name, value);
         });
-    }
-    insertAt(index, value, def) {
-        let [child, offset] = this.children.find(index);
+    };
+    ContainerBlot.prototype.insertAt = function (index, value, def) {
+        var _a = this.children.find(index), child = _a[0], offset = _a[1];
         if (child) {
             child.insertAt(offset, value, def);
         }
         else {
-            let blot = def == null ? Registry.create('text', value) : Registry.create(value, def);
+            var blot = def == null ? Registry.create('text', value) : Registry.create(value, def);
             this.appendChild(blot);
         }
-    }
-    insertBefore(childBlot, refBlot) {
+    };
+    ContainerBlot.prototype.insertBefore = function (childBlot, refBlot) {
         if (this.statics.allowedChildren != null &&
             !this.statics.allowedChildren.some(function (child) {
                 return childBlot instanceof child;
             })) {
-            throw new Registry.ParchmentError(`Cannot insert ${childBlot.statics.blotName} into ${this.statics.blotName}`);
+            throw new Registry.ParchmentError("Cannot insert " + childBlot.statics.blotName + " into " + this.statics.blotName);
         }
         childBlot.insertInto(this, refBlot);
-    }
-    length() {
+    };
+    ContainerBlot.prototype.length = function () {
         return this.children.reduce(function (memo, child) {
             return memo + child.length();
         }, 0);
-    }
-    moveChildren(targetParent, refNode) {
+    };
+    ContainerBlot.prototype.moveChildren = function (targetParent, refNode) {
         this.children.forEach(function (child) {
             targetParent.insertBefore(child, refNode);
         });
-    }
-    optimize(context) {
-        super.optimize(context);
+    };
+    ContainerBlot.prototype.optimize = function (context) {
+        _super.prototype.optimize.call(this, context);
         if (this.children.length === 0) {
             if (this.statics.defaultChild != null) {
-                let child = Registry.create(this.statics.defaultChild);
+                var child = Registry.create(this.statics.defaultChild);
                 this.appendChild(child);
                 child.optimize(context);
             }
@@ -425,10 +462,11 @@ class ContainerBlot extends shadow_1.default {
                 this.remove();
             }
         }
-    }
-    path(index, inclusive = false) {
-        let [child, offset] = this.children.find(index, inclusive);
-        let position = [[this, index]];
+    };
+    ContainerBlot.prototype.path = function (index, inclusive) {
+        if (inclusive === void 0) { inclusive = false; }
+        var _a = this.children.find(index, inclusive), child = _a[0], offset = _a[1];
+        var position = [[this, index]];
         if (child instanceof ContainerBlot) {
             return position.concat(child.path(offset, inclusive));
         }
@@ -436,45 +474,47 @@ class ContainerBlot extends shadow_1.default {
             position.push([child, offset]);
         }
         return position;
-    }
-    removeChild(child) {
+    };
+    ContainerBlot.prototype.removeChild = function (child) {
         this.children.remove(child);
-    }
-    replace(target) {
+    };
+    ContainerBlot.prototype.replace = function (target) {
         if (target instanceof ContainerBlot) {
             target.moveChildren(this);
         }
-        super.replace(target);
-    }
-    split(index, force = false) {
+        _super.prototype.replace.call(this, target);
+    };
+    ContainerBlot.prototype.split = function (index, force) {
+        if (force === void 0) { force = false; }
         if (!force) {
             if (index === 0)
                 return this;
             if (index === this.length())
                 return this.next;
         }
-        let after = this.clone();
+        var after = this.clone();
         this.parent.insertBefore(after, this.next);
         this.children.forEachAt(index, this.length(), function (child, offset, length) {
             child = child.split(offset, force);
             after.appendChild(child);
         });
         return after;
-    }
-    unwrap() {
+    };
+    ContainerBlot.prototype.unwrap = function () {
         this.moveChildren(this.parent, this.next);
         this.remove();
-    }
-    update(mutations, context) {
-        let addedNodes = [];
-        let removedNodes = [];
-        mutations.forEach(mutation => {
-            if (mutation.target === this.domNode && mutation.type === 'childList') {
+    };
+    ContainerBlot.prototype.update = function (mutations, context) {
+        var _this = this;
+        var addedNodes = [];
+        var removedNodes = [];
+        mutations.forEach(function (mutation) {
+            if (mutation.target === _this.domNode && mutation.type === 'childList') {
                 addedNodes.push.apply(addedNodes, mutation.addedNodes);
                 removedNodes.push.apply(removedNodes, mutation.removedNodes);
             }
         });
-        removedNodes.forEach((node) => {
+        removedNodes.forEach(function (node) {
             // Check node has actually been removed
             // One exception is Chrome does not immediately remove IFRAMEs
             // from DOM but MutationRecord is correct in its reported removal
@@ -484,16 +524,16 @@ class ContainerBlot extends shadow_1.default {
                 document.body.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_CONTAINED_BY) {
                 return;
             }
-            let blot = Registry.find(node);
+            var blot = Registry.find(node);
             if (blot == null)
                 return;
-            if (blot.domNode.parentNode == null || blot.domNode.parentNode === this.domNode) {
+            if (blot.domNode.parentNode == null || blot.domNode.parentNode === _this.domNode) {
                 blot.detach();
             }
         });
         addedNodes
-            .filter(node => {
-            return node.parentNode == this.domNode;
+            .filter(function (node) {
+            return node.parentNode == _this.domNode;
         })
             .sort(function (a, b) {
             if (a === b)
@@ -503,23 +543,24 @@ class ContainerBlot extends shadow_1.default {
             }
             return -1;
         })
-            .forEach(node => {
-            let refBlot = null;
+            .forEach(function (node) {
+            var refBlot = null;
             if (node.nextSibling != null) {
                 refBlot = Registry.find(node.nextSibling);
             }
-            let blot = makeBlot(node);
+            var blot = makeBlot(node);
             if (blot.next != refBlot || blot.next == null) {
                 if (blot.parent != null) {
-                    blot.parent.removeChild(this);
+                    blot.parent.removeChild(_this);
                 }
-                this.insertBefore(blot, refBlot || undefined);
+                _this.insertBefore(blot, refBlot || undefined);
             }
         });
-    }
-}
+    };
+    return ContainerBlot;
+}(shadow_1.default));
 function makeBlot(node) {
-    let blot = Registry.find(node);
+    var blot = Registry.find(node);
     if (blot == null) {
         try {
             blot = Registry.create(node);
@@ -547,13 +588,29 @@ exports.default = ContainerBlot;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const attributor_1 = __webpack_require__(1);
-const store_1 = __webpack_require__(6);
-const container_1 = __webpack_require__(2);
-const Registry = __webpack_require__(0);
-class FormatBlot extends container_1.default {
-    static formats(domNode) {
+var attributor_1 = __webpack_require__(1);
+var store_1 = __webpack_require__(6);
+var container_1 = __webpack_require__(2);
+var Registry = __webpack_require__(0);
+var FormatBlot = /** @class */ (function (_super) {
+    __extends(FormatBlot, _super);
+    function FormatBlot(domNode) {
+        var _this = _super.call(this, domNode) || this;
+        _this.attributes = new store_1.default(_this.domNode);
+        return _this;
+    }
+    FormatBlot.formats = function (domNode) {
         if (typeof this.tagName === 'string') {
             return true;
         }
@@ -561,13 +618,9 @@ class FormatBlot extends container_1.default {
             return domNode.tagName.toLowerCase();
         }
         return undefined;
-    }
-    constructor(domNode) {
-        super(domNode);
-        this.attributes = new store_1.default(this.domNode);
-    }
-    format(name, value) {
-        let format = Registry.query(name);
+    };
+    FormatBlot.prototype.format = function (name, value) {
+        var format = Registry.query(name);
         if (format instanceof attributor_1.default) {
             this.attributes.attribute(format, value);
         }
@@ -576,36 +629,38 @@ class FormatBlot extends container_1.default {
                 this.replaceWith(name, value);
             }
         }
-    }
-    formats() {
-        let formats = this.attributes.values();
-        let format = this.statics.formats(this.domNode);
+    };
+    FormatBlot.prototype.formats = function () {
+        var formats = this.attributes.values();
+        var format = this.statics.formats(this.domNode);
         if (format != null) {
             formats[this.statics.blotName] = format;
         }
         return formats;
-    }
-    replaceWith(name, value) {
-        let replacement = super.replaceWith(name, value);
+    };
+    FormatBlot.prototype.replaceWith = function (name, value) {
+        var replacement = _super.prototype.replaceWith.call(this, name, value);
         this.attributes.copy(replacement);
         return replacement;
-    }
-    update(mutations, context) {
-        super.update(mutations, context);
-        if (mutations.some(mutation => {
-            return mutation.target === this.domNode && mutation.type === 'attributes';
+    };
+    FormatBlot.prototype.update = function (mutations, context) {
+        var _this = this;
+        _super.prototype.update.call(this, mutations, context);
+        if (mutations.some(function (mutation) {
+            return mutation.target === _this.domNode && mutation.type === 'attributes';
         })) {
             this.attributes.build();
         }
-    }
-    wrap(name, value) {
-        let wrapper = super.wrap(name, value);
+    };
+    FormatBlot.prototype.wrap = function (name, value) {
+        var wrapper = _super.prototype.wrap.call(this, name, value);
         if (wrapper instanceof FormatBlot && wrapper.statics.scope === this.statics.scope) {
             this.attributes.move(wrapper);
         }
         return wrapper;
-    }
-}
+    };
+    return FormatBlot;
+}(container_1.default));
 exports.default = FormatBlot;
 
 
@@ -615,31 +670,47 @@ exports.default = FormatBlot;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const shadow_1 = __webpack_require__(5);
-const Registry = __webpack_require__(0);
-class LeafBlot extends shadow_1.default {
-    static value(domNode) {
-        return true;
+var shadow_1 = __webpack_require__(5);
+var Registry = __webpack_require__(0);
+var LeafBlot = /** @class */ (function (_super) {
+    __extends(LeafBlot, _super);
+    function LeafBlot() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    index(node, offset) {
+    LeafBlot.value = function (domNode) {
+        return true;
+    };
+    LeafBlot.prototype.index = function (node, offset) {
         if (this.domNode === node ||
             this.domNode.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_CONTAINED_BY) {
             return Math.min(offset, 1);
         }
         return -1;
-    }
-    position(index, inclusive) {
-        let offset = [].indexOf.call(this.parent.domNode.childNodes, this.domNode);
+    };
+    LeafBlot.prototype.position = function (index, inclusive) {
+        var offset = [].indexOf.call(this.parent.domNode.childNodes, this.domNode);
         if (index > 0)
             offset += 1;
         return [this.parent.domNode, offset];
-    }
-    value() {
-        return { [this.statics.blotName]: this.statics.value(this.domNode) || true };
-    }
-}
-LeafBlot.scope = Registry.Scope.INLINE_BLOT;
+    };
+    LeafBlot.prototype.value = function () {
+        var _a;
+        return _a = {}, _a[this.statics.blotName] = this.statics.value(this.domNode) || true, _a;
+    };
+    LeafBlot.scope = Registry.Scope.INLINE_BLOT;
+    return LeafBlot;
+}(shadow_1.default));
 exports.default = LeafBlot;
 
 
@@ -650,24 +721,28 @@ exports.default = LeafBlot;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const Registry = __webpack_require__(0);
-class ShadowBlot {
-    constructor(domNode) {
+var Registry = __webpack_require__(0);
+var ShadowBlot = /** @class */ (function () {
+    function ShadowBlot(domNode) {
         this.domNode = domNode;
         this._isAttached = false;
         this._isDetached = false;
         // @ts-ignore
         this.domNode[Registry.DATA_KEY] = { blot: this };
     }
-    // Hack for accessing inherited static methods
-    get statics() {
-        return this.constructor;
-    }
-    static create(value) {
+    Object.defineProperty(ShadowBlot.prototype, "statics", {
+        // Hack for accessing inherited static methods
+        get: function () {
+            return this.constructor;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ShadowBlot.create = function (value) {
         if (this.tagName == null) {
             throw new Registry.ParchmentError('Blot definition missing tagName');
         }
-        let node;
+        var node;
         if (Array.isArray(this.tagName)) {
             if (typeof value === 'string') {
                 value = value.toUpperCase();
@@ -692,48 +767,49 @@ class ShadowBlot {
             node.classList.add(this.className);
         }
         return node;
-    }
-    attach() { }
-    ensureScrollIsAssigned() {
+    };
+    ShadowBlot.prototype.attach = function () { };
+    ShadowBlot.prototype.ensureScrollIsAssigned = function () {
         if (this.parent != null) {
             this.scroll = this.parent.scroll;
         }
-    }
-    clone() {
-        let domNode = this.domNode.cloneNode(false);
+    };
+    ShadowBlot.prototype.clone = function () {
+        var domNode = this.domNode.cloneNode(false);
         return Registry.create(domNode);
-    }
-    detach() {
+    };
+    ShadowBlot.prototype.detach = function () {
         if (this.parent != null)
             this.parent.removeChild(this);
         // @ts-ignore
         delete this.domNode[Registry.DATA_KEY];
-    }
-    deleteAt(index, length) {
-        let blot = this.isolate(index, length);
+    };
+    ShadowBlot.prototype.deleteAt = function (index, length) {
+        var blot = this.isolate(index, length);
         blot.remove();
-    }
-    formatAt(index, length, name, value) {
-        let blot = this.isolate(index, length);
+    };
+    ShadowBlot.prototype.formatAt = function (index, length, name, value) {
+        var blot = this.isolate(index, length);
         if (Registry.query(name, Registry.Scope.BLOT) != null && value) {
             blot.wrap(name, value);
         }
         else if (Registry.query(name, Registry.Scope.ATTRIBUTE) != null) {
-            let parent = Registry.create(this.statics.scope);
-            blot.wrap(parent);
-            parent.format(name, value);
+            var parent_1 = Registry.create(this.statics.scope);
+            blot.wrap(parent_1);
+            parent_1.format(name, value);
         }
-    }
-    insertAt(index, value, def) {
-        let blot = def == null ? Registry.create('text', value) : Registry.create(value, def);
-        let ref = this.split(index);
+    };
+    ShadowBlot.prototype.insertAt = function (index, value, def) {
+        var blot = def == null ? Registry.create('text', value) : Registry.create(value, def);
+        var ref = this.split(index);
         this.parent.insertBefore(blot, ref);
-    }
-    insertInto(parentBlot, refBlot = null) {
+    };
+    ShadowBlot.prototype.insertInto = function (parentBlot, refBlot) {
+        if (refBlot === void 0) { refBlot = null; }
         if (this.parent != null) {
             this.parent.children.remove(this);
         }
-        let refDomNode = null;
+        var refDomNode = null;
         parentBlot.children.insertBefore(this, refBlot);
         if (refBlot != null) {
             refDomNode = refBlot.domNode;
@@ -744,61 +820,63 @@ class ShadowBlot {
         }
         this.parent = parentBlot;
         Registry.attachOnce(this);
-    }
-    isolate(index, length) {
-        let target = this.split(index);
+    };
+    ShadowBlot.prototype.isolate = function (index, length) {
+        var target = this.split(index);
         target.split(length);
         return target;
-    }
-    length() {
+    };
+    ShadowBlot.prototype.length = function () {
         return 1;
-    }
-    offset(root = this.parent) {
+    };
+    ShadowBlot.prototype.offset = function (root) {
+        if (root === void 0) { root = this.parent; }
         if (this.parent == null || this == root)
             return 0;
         return this.parent.children.offset(this) + this.parent.offset(root);
-    }
-    optimize(context) {
+    };
+    ShadowBlot.prototype.optimize = function (context) {
         // TODO clean up once we use WeakMap
         // @ts-ignore
         if (this.domNode[Registry.DATA_KEY] != null) {
             // @ts-ignore
             delete this.domNode[Registry.DATA_KEY].mutations;
         }
-    }
-    remove() {
+    };
+    ShadowBlot.prototype.remove = function () {
         if (this.domNode.parentNode != null) {
             this.domNode.parentNode.removeChild(this.domNode);
         }
         this.detach();
-    }
-    replace(target) {
+    };
+    ShadowBlot.prototype.replace = function (target) {
         if (target.parent == null)
             return;
         target.parent.insertBefore(this, target.next);
         target.remove();
-    }
-    replaceWith(name, value) {
-        let replacement = typeof name === 'string' ? Registry.create(name, value) : name;
+    };
+    ShadowBlot.prototype.replaceWith = function (name, value) {
+        var replacement = typeof name === 'string' ? Registry.create(name, value) : name;
         replacement.replace(this);
         return replacement;
-    }
-    split(index, force) {
+    };
+    ShadowBlot.prototype.split = function (index, force) {
         return index === 0 ? this : this.next;
-    }
-    update(mutations, context) {
+    };
+    ShadowBlot.prototype.update = function (mutations, context) {
         // Nothing to do by default
-    }
-    wrap(name, value) {
-        let wrapper = typeof name === 'string' ? Registry.create(name, value) : name;
+    };
+    ShadowBlot.prototype.wrap = function (name, value) {
+        var wrapper = typeof name === 'string' ? Registry.create(name, value) : name;
         if (this.parent != null) {
             this.parent.insertBefore(wrapper, this.next);
         }
         wrapper.appendChild(this);
         return wrapper;
-    }
-}
-ShadowBlot.blotName = 'abstract';
+    };
+    ShadowBlot.blotName = 'abstract';
+    return ShadowBlot;
+}());
 exports.default = ShadowBlot;
 
 
@@ -809,17 +887,17 @@ exports.default = ShadowBlot;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const attributor_1 = __webpack_require__(1);
-const class_1 = __webpack_require__(7);
-const style_1 = __webpack_require__(8);
-const Registry = __webpack_require__(0);
-class AttributorStore {
-    constructor(domNode) {
+var attributor_1 = __webpack_require__(1);
+var class_1 = __webpack_require__(7);
+var style_1 = __webpack_require__(8);
+var Registry = __webpack_require__(0);
+var AttributorStore = /** @class */ (function () {
+    function AttributorStore(domNode) {
         this.attributes = {};
         this.domNode = domNode;
         this.build();
     }
-    attribute(attribute, value) {
+    AttributorStore.prototype.attribute = function (attribute, value) {
         // verb
         if (value) {
             if (attribute.add(this.domNode, value)) {
@@ -835,42 +913,47 @@ class AttributorStore {
             attribute.remove(this.domNode);
             delete this.attributes[attribute.attrName];
         }
-    }
-    build() {
+    };
+    AttributorStore.prototype.build = function () {
+        var _this = this;
         this.attributes = {};
-        let attributes = attributor_1.default.keys(this.domNode);
-        let classes = class_1.default.keys(this.domNode);
-        let styles = style_1.default.keys(this.domNode);
+        var attributes = attributor_1.default.keys(this.domNode);
+        var classes = class_1.default.keys(this.domNode);
+        var styles = style_1.default.keys(this.domNode);
         attributes
             .concat(classes)
             .concat(styles)
-            .forEach(name => {
-            let attr = Registry.query(name, Registry.Scope.ATTRIBUTE);
+            .forEach(function (name) {
+            var attr = Registry.query(name, Registry.Scope.ATTRIBUTE);
             if (attr instanceof attributor_1.default) {
-                this.attributes[attr.attrName] = attr;
+                _this.attributes[attr.attrName] = attr;
             }
         });
-    }
-    copy(target) {
-        Object.keys(this.attributes).forEach(key => {
-            let value = this.attributes[key].value(this.domNode);
+    };
+    AttributorStore.prototype.copy = function (target) {
+        var _this = this;
+        Object.keys(this.attributes).forEach(function (key) {
+            var value = _this.attributes[key].value(_this.domNode);
             target.format(key, value);
         });
-    }
-    move(target) {
+    };
+    AttributorStore.prototype.move = function (target) {
+        var _this = this;
         this.copy(target);
-        Object.keys(this.attributes).forEach(key => {
-            this.attributes[key].remove(this.domNode);
+        Object.keys(this.attributes).forEach(function (key) {
+            _this.attributes[key].remove(_this.domNode);
         });
         this.attributes = {};
-    }
-    values() {
-        return Object.keys(this.attributes).reduce((attributes, name) => {
-            attributes[name] = this.attributes[name].value(this.domNode);
+    };
+    AttributorStore.prototype.values = function () {
+        var _this = this;
+        return Object.keys(this.attributes).reduce(function (attributes, name) {
+            attributes[name] = _this.attributes[name].value(_this.domNode);
             return attributes;
         }, {});
-    }
-}
+    };
+    return AttributorStore;
+}());
 exports.default = AttributorStore;
 
 
@@ -880,44 +963,59 @@ exports.default = AttributorStore;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const attributor_1 = __webpack_require__(1);
+var attributor_1 = __webpack_require__(1);
 function match(node, prefix) {
     return Array.from(node.classList).filter(function (name) {
-        return name.indexOf(`${prefix}-`) === 0;
+        return name.indexOf(prefix + "-") === 0;
     });
 }
-class ClassAttributor extends attributor_1.default {
-    static keys(node) {
+var ClassAttributor = /** @class */ (function (_super) {
+    __extends(ClassAttributor, _super);
+    function ClassAttributor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    ClassAttributor.keys = function (node) {
         return (node.getAttribute('class') || '').split(/\s+/).map(function (name) {
             return name
                 .split('-')
                 .slice(0, -1)
                 .join('-');
         });
-    }
-    add(node, value) {
+    };
+    ClassAttributor.prototype.add = function (node, value) {
         if (!this.canAdd(node, value))
             return false;
         this.remove(node);
-        node.classList.add(`${this.keyName}-${value}`);
+        node.classList.add(this.keyName + "-" + value);
         return true;
-    }
-    remove(node) {
-        let matches = match(node, this.keyName);
+    };
+    ClassAttributor.prototype.remove = function (node) {
+        var matches = match(node, this.keyName);
         matches.forEach(function (name) {
             node.classList.remove(name);
         });
         if (node.classList.length === 0) {
             node.removeAttribute('class');
         }
-    }
-    value(node) {
-        let result = match(node, this.keyName)[0] || '';
-        let value = result.slice(this.keyName.length + 1); // +1 for hyphen
+    };
+    ClassAttributor.prototype.value = function (node) {
+        var result = match(node, this.keyName)[0] || '';
+        var value = result.slice(this.keyName.length + 1); // +1 for hyphen
         return this.canAdd(node, value) ? value : '';
-    }
-}
+    };
+    return ClassAttributor;
+}(attributor_1.default));
 exports.default = ClassAttributor;
 
 
@@ -927,11 +1025,21 @@ exports.default = ClassAttributor;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const attributor_1 = __webpack_require__(1);
+var attributor_1 = __webpack_require__(1);
 function camelize(name) {
-    let parts = name.split('-');
-    let rest = parts
+    var parts = name.split('-');
+    var rest = parts
         .slice(1)
         .map(function (part) {
         return part[0].toUpperCase() + part.slice(1);
@@ -939,33 +1047,38 @@ function camelize(name) {
         .join('');
     return parts[0] + rest;
 }
-class StyleAttributor extends attributor_1.default {
-    static keys(node) {
+var StyleAttributor = /** @class */ (function (_super) {
+    __extends(StyleAttributor, _super);
+    function StyleAttributor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    StyleAttributor.keys = function (node) {
         return (node.getAttribute('style') || '').split(';').map(function (value) {
-            let arr = value.split(':');
+            var arr = value.split(':');
             return arr[0].trim();
         });
-    }
-    add(node, value) {
+    };
+    StyleAttributor.prototype.add = function (node, value) {
         if (!this.canAdd(node, value))
             return false;
         // @ts-ignore
         node.style[camelize(this.keyName)] = value;
         return true;
-    }
-    remove(node) {
+    };
+    StyleAttributor.prototype.remove = function (node) {
         // @ts-ignore
         node.style[camelize(this.keyName)] = '';
         if (!node.getAttribute('style')) {
             node.removeAttribute('style');
         }
-    }
-    value(node) {
+    };
+    StyleAttributor.prototype.value = function (node) {
         // @ts-ignore
-        let value = node.style[camelize(this.keyName)];
+        var value = node.style[camelize(this.keyName)];
         return this.canAdd(node, value) ? value : '';
-    }
-}
+    };
+    return StyleAttributor;
+}(attributor_1.default));
 exports.default = StyleAttributor;
 
 
@@ -983,20 +1096,20 @@ module.exports = __webpack_require__(10);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const container_1 = __webpack_require__(2);
-const format_1 = __webpack_require__(3);
-const leaf_1 = __webpack_require__(4);
-const scroll_1 = __webpack_require__(12);
-const inline_1 = __webpack_require__(13);
-const block_1 = __webpack_require__(14);
-const embed_1 = __webpack_require__(15);
-const text_1 = __webpack_require__(16);
-const attributor_1 = __webpack_require__(1);
-const class_1 = __webpack_require__(7);
-const style_1 = __webpack_require__(8);
-const store_1 = __webpack_require__(6);
-const Registry = __webpack_require__(0);
-let Parchment = {
+var container_1 = __webpack_require__(2);
+var format_1 = __webpack_require__(3);
+var leaf_1 = __webpack_require__(4);
+var scroll_1 = __webpack_require__(12);
+var inline_1 = __webpack_require__(13);
+var block_1 = __webpack_require__(14);
+var embed_1 = __webpack_require__(15);
+var text_1 = __webpack_require__(16);
+var attributor_1 = __webpack_require__(1);
+var class_1 = __webpack_require__(7);
+var style_1 = __webpack_require__(8);
+var store_1 = __webpack_require__(6);
+var Registry = __webpack_require__(0);
+var Parchment = {
     Scope: Registry.Scope,
     create: Registry.create,
     find: Registry.find,
@@ -1027,26 +1140,30 @@ exports.default = Parchment;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-class LinkedList {
-    constructor() {
+var LinkedList = /** @class */ (function () {
+    function LinkedList() {
         this.head = this.tail = null;
         this.length = 0;
     }
-    append(...nodes) {
+    LinkedList.prototype.append = function () {
+        var nodes = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            nodes[_i] = arguments[_i];
+        }
         this.insertBefore(nodes[0], null);
         if (nodes.length > 1) {
             this.append.apply(this, nodes.slice(1));
         }
-    }
-    contains(node) {
-        let cur, next = this.iterator();
+    };
+    LinkedList.prototype.contains = function (node) {
+        var cur, next = this.iterator();
         while ((cur = next())) {
             if (cur === node)
                 return true;
         }
         return false;
-    }
-    insertBefore(node, refNode) {
+    };
+    LinkedList.prototype.insertBefore = function (node, refNode) {
         if (!node)
             return;
         node.next = refNode;
@@ -1070,9 +1187,9 @@ class LinkedList {
             this.head = this.tail = node;
         }
         this.length += 1;
-    }
-    offset(target) {
-        let index = 0, cur = this.head;
+    };
+    LinkedList.prototype.offset = function (target) {
+        var index = 0, cur = this.head;
         while (cur != null) {
             if (cur === target)
                 return index;
@@ -1080,8 +1197,8 @@ class LinkedList {
             cur = cur.next;
         }
         return -1;
-    }
-    remove(node) {
+    };
+    LinkedList.prototype.remove = function (node) {
         if (!this.contains(node))
             return;
         if (node.prev != null)
@@ -1093,41 +1210,43 @@ class LinkedList {
         if (node === this.tail)
             this.tail = node.prev;
         this.length -= 1;
-    }
-    iterator(curNode = this.head) {
+    };
+    LinkedList.prototype.iterator = function (curNode) {
+        if (curNode === void 0) { curNode = this.head; }
         // TODO use yield when we can
         return function () {
-            let ret = curNode;
+            var ret = curNode;
             if (curNode != null)
                 curNode = curNode.next;
             return ret;
         };
-    }
-    find(index, inclusive = false) {
-        let cur, next = this.iterator();
+    };
+    LinkedList.prototype.find = function (index, inclusive) {
+        if (inclusive === void 0) { inclusive = false; }
+        var cur, next = this.iterator();
         while ((cur = next())) {
-            let length = cur.length();
-            if (index < length ||
-                (inclusive && index === length && (cur.next == null || cur.next.length() !== 0))) {
+            var length_1 = cur.length();
+            if (index < length_1 ||
+                (inclusive && index === length_1 && (cur.next == null || cur.next.length() !== 0))) {
                 return [cur, index];
             }
-            index -= length;
+            index -= length_1;
         }
         return [null, 0];
-    }
-    forEach(callback) {
-        let cur, next = this.iterator();
+    };
+    LinkedList.prototype.forEach = function (callback) {
+        var cur, next = this.iterator();
         while ((cur = next())) {
             callback(cur);
         }
-    }
-    forEachAt(index, length, callback) {
+    };
+    LinkedList.prototype.forEachAt = function (index, length, callback) {
         if (length <= 0)
             return;
-        let [startNode, offset] = this.find(index);
-        let cur, curIndex = index - offset, next = this.iterator(startNode);
+        var _a = this.find(index), startNode = _a[0], offset = _a[1];
+        var cur, curIndex = index - offset, next = this.iterator(startNode);
         while ((cur = next()) && curIndex < index + length) {
-            let curLength = cur.length();
+            var curLength = cur.length();
             if (index > curIndex) {
                 callback(cur, index - curIndex, Math.min(length, curIndex + curLength - index));
             }
@@ -1136,21 +1255,22 @@ class LinkedList {
             }
             curIndex += curLength;
         }
-    }
-    map(callback) {
+    };
+    LinkedList.prototype.map = function (callback) {
         return this.reduce(function (memo, cur) {
             memo.push(callback(cur));
             return memo;
         }, []);
-    }
-    reduce(callback, memo) {
-        let cur, next = this.iterator();
+    };
+    LinkedList.prototype.reduce = function (callback, memo) {
+        var cur, next = this.iterator();
         while ((cur = next())) {
             memo = callback(memo, cur);
         }
         return memo;
-    }
-}
+    };
+    return LinkedList;
+}());
 exports.default = LinkedList;
 
 
@@ -1160,32 +1280,44 @@ exports.default = LinkedList;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const container_1 = __webpack_require__(2);
-const Registry = __webpack_require__(0);
-const OBSERVER_CONFIG = {
+var container_1 = __webpack_require__(2);
+var Registry = __webpack_require__(0);
+var OBSERVER_CONFIG = {
     attributes: true,
     characterData: true,
     characterDataOldValue: true,
     childList: true,
     subtree: true,
 };
-const MAX_OPTIMIZE_ITERATIONS = 100;
-class ScrollBlot extends container_1.default {
-    constructor(node) {
-        super(node);
-        this.scroll = this;
-        this.observer = new MutationObserver((mutations) => {
-            this.update(mutations);
+var MAX_OPTIMIZE_ITERATIONS = 100;
+var ScrollBlot = /** @class */ (function (_super) {
+    __extends(ScrollBlot, _super);
+    function ScrollBlot(node) {
+        var _this = _super.call(this, node) || this;
+        _this.scroll = _this;
+        _this.observer = new MutationObserver(function (mutations) {
+            _this.update(mutations);
         });
-        this.observer.observe(this.domNode, OBSERVER_CONFIG);
-        Registry.attachOnce(this);
+        _this.observer.observe(_this.domNode, OBSERVER_CONFIG);
+        Registry.attachOnce(_this);
+        return _this;
     }
-    detach() {
-        super.detach();
+    ScrollBlot.prototype.detach = function () {
+        _super.prototype.detach.call(this);
         this.observer.disconnect();
-    }
-    deleteAt(index, length) {
+    };
+    ScrollBlot.prototype.deleteAt = function (index, length) {
         this.update();
         if (index === 0 && length === this.length()) {
             this.children.forEach(function (child) {
@@ -1193,28 +1325,32 @@ class ScrollBlot extends container_1.default {
             });
         }
         else {
-            super.deleteAt(index, length);
+            _super.prototype.deleteAt.call(this, index, length);
         }
-    }
-    formatAt(index, length, name, value) {
+    };
+    ScrollBlot.prototype.formatAt = function (index, length, name, value) {
         this.update();
-        super.formatAt(index, length, name, value);
-    }
-    insertAt(index, value, def) {
+        _super.prototype.formatAt.call(this, index, length, name, value);
+    };
+    ScrollBlot.prototype.insertAt = function (index, value, def) {
         this.update();
-        super.insertAt(index, value, def);
-    }
-    optimize(mutations = [], context = {}) {
-        super.optimize(context);
+        _super.prototype.insertAt.call(this, index, value, def);
+    };
+    ScrollBlot.prototype.optimize = function (mutations, context) {
+        var _this = this;
+        if (mutations === void 0) { mutations = []; }
+        if (context === void 0) { context = {}; }
+        _super.prototype.optimize.call(this, context);
         // We must modify mutations directly, cannot make copy and then modify
-        let records = [].slice.call(this.observer.takeRecords());
+        var records = [].slice.call(this.observer.takeRecords());
         // Array.push currently seems to be implemented by a non-tail recursive function
         // so we cannot just mutations.push.apply(mutations, this.observer.takeRecords());
         while (records.length > 0)
             mutations.push(records.pop());
         // TODO use WeakMap
-        let mark = (blot, markParent = true) => {
-            if (blot == null || blot === this)
+        var mark = function (blot, markParent) {
+            if (markParent === void 0) { markParent = true; }
+            if (blot == null || blot === _this)
                 return;
             if (blot.domNode.parentNode == null)
                 return;
@@ -1226,7 +1362,7 @@ class ScrollBlot extends container_1.default {
             if (markParent)
                 mark(blot.parent);
         };
-        let optimize = function (blot) {
+        var optimize = function (blot) {
             // Post-order traversal
             if (
             // @ts-ignore
@@ -1240,20 +1376,20 @@ class ScrollBlot extends container_1.default {
             }
             blot.optimize(context);
         };
-        let remaining = mutations;
-        for (let i = 0; remaining.length > 0; i += 1) {
+        var remaining = mutations;
+        for (var i = 0; remaining.length > 0; i += 1) {
             if (i >= MAX_OPTIMIZE_ITERATIONS) {
                 throw new Error('[Parchment] Maximum optimize iterations reached');
             }
             remaining.forEach(function (mutation) {
-                let blot = Registry.find(mutation.target, true);
+                var blot = Registry.find(mutation.target, true);
                 if (blot == null)
                     return;
                 if (blot.domNode === mutation.target) {
                     if (mutation.type === 'childList') {
                         mark(Registry.find(mutation.previousSibling, false));
                         [].forEach.call(mutation.addedNodes, function (node) {
-                            let child = Registry.find(node, false);
+                            var child = Registry.find(node, false);
                             mark(child, false);
                             if (child instanceof container_1.default) {
                                 child.children.forEach(function (grandChild) {
@@ -1274,13 +1410,15 @@ class ScrollBlot extends container_1.default {
             while (records.length > 0)
                 mutations.push(records.pop());
         }
-    }
-    update(mutations, context = {}) {
+    };
+    ScrollBlot.prototype.update = function (mutations, context) {
+        var _this = this;
+        if (context === void 0) { context = {}; }
         mutations = mutations || this.observer.takeRecords();
         // TODO use WeakMap
         mutations
             .map(function (mutation) {
-            let blot = Registry.find(mutation.target, true);
+            var blot = Registry.find(mutation.target, true);
             if (blot == null)
                 return null;
             // @ts-ignore
@@ -1295,9 +1433,9 @@ class ScrollBlot extends container_1.default {
                 return null;
             }
         })
-            .forEach((blot) => {
+            .forEach(function (blot) {
             if (blot == null ||
-                blot === this ||
+                blot === _this ||
                 //@ts-ignore
                 blot.domNode[Registry.DATA_KEY] == null)
                 return;
@@ -1307,15 +1445,16 @@ class ScrollBlot extends container_1.default {
         // @ts-ignore
         if (this.domNode[Registry.DATA_KEY].mutations != null) {
             // @ts-ignore
-            super.update(this.domNode[Registry.DATA_KEY].mutations, context);
+            _super.prototype.update.call(this, this.domNode[Registry.DATA_KEY].mutations, context);
         }
         this.optimize(mutations, context);
-    }
-}
-ScrollBlot.blotName = 'scroll';
-ScrollBlot.defaultChild = 'block';
-ScrollBlot.scope = Registry.Scope.BLOCK_BLOT;
-ScrollBlot.tagName = 'DIV';
+    };
+    ScrollBlot.blotName = 'scroll';
+    ScrollBlot.defaultChild = 'block';
+    ScrollBlot.scope = Registry.Scope.BLOCK_BLOT;
+    ScrollBlot.tagName = 'DIV';
+    return ScrollBlot;
+}(container_1.default));
 exports.default = ScrollBlot;
 
 
@@ -1325,66 +1464,82 @@ exports.default = ScrollBlot;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const format_1 = __webpack_require__(3);
-const Registry = __webpack_require__(0);
+var format_1 = __webpack_require__(3);
+var Registry = __webpack_require__(0);
 // Shallow object comparison
 function isEqual(obj1, obj2) {
     if (Object.keys(obj1).length !== Object.keys(obj2).length)
         return false;
     // @ts-ignore
-    for (let prop in obj1) {
+    for (var prop in obj1) {
         // @ts-ignore
         if (obj1[prop] !== obj2[prop])
             return false;
     }
     return true;
 }
-class InlineBlot extends format_1.default {
-    static formats(domNode) {
+var InlineBlot = /** @class */ (function (_super) {
+    __extends(InlineBlot, _super);
+    function InlineBlot() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    InlineBlot.formats = function (domNode) {
         if (domNode.tagName === InlineBlot.tagName)
             return undefined;
-        return super.formats(domNode);
-    }
-    format(name, value) {
+        return _super.formats.call(this, domNode);
+    };
+    InlineBlot.prototype.format = function (name, value) {
+        var _this = this;
         if (name === this.statics.blotName && !value) {
-            this.children.forEach(child => {
+            this.children.forEach(function (child) {
                 if (!(child instanceof format_1.default)) {
                     child = child.wrap(InlineBlot.blotName, true);
                 }
-                this.attributes.copy(child);
+                _this.attributes.copy(child);
             });
             this.unwrap();
         }
         else {
-            super.format(name, value);
+            _super.prototype.format.call(this, name, value);
         }
-    }
-    formatAt(index, length, name, value) {
+    };
+    InlineBlot.prototype.formatAt = function (index, length, name, value) {
         if (this.formats()[name] != null || Registry.query(name, Registry.Scope.ATTRIBUTE)) {
-            let blot = this.isolate(index, length);
+            var blot = this.isolate(index, length);
             blot.format(name, value);
         }
         else {
-            super.formatAt(index, length, name, value);
+            _super.prototype.formatAt.call(this, index, length, name, value);
         }
-    }
-    optimize(context) {
-        super.optimize(context);
-        let formats = this.formats();
+    };
+    InlineBlot.prototype.optimize = function (context) {
+        _super.prototype.optimize.call(this, context);
+        var formats = this.formats();
         if (Object.keys(formats).length === 0) {
             return this.unwrap(); // unformatted span
         }
-        let next = this.next;
+        var next = this.next;
         if (next instanceof InlineBlot && next.prev === this && isEqual(formats, next.formats())) {
             next.moveChildren(this);
             next.remove();
         }
-    }
-}
-InlineBlot.blotName = 'inline';
-InlineBlot.scope = Registry.Scope.INLINE_BLOT;
-InlineBlot.tagName = 'SPAN';
+    };
+    InlineBlot.blotName = 'inline';
+    InlineBlot.scope = Registry.Scope.INLINE_BLOT;
+    InlineBlot.tagName = 'SPAN';
+    return InlineBlot;
+}(format_1.default));
 exports.default = InlineBlot;
 
 
@@ -1394,17 +1549,31 @@ exports.default = InlineBlot;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const format_1 = __webpack_require__(3);
-const Registry = __webpack_require__(0);
-class BlockBlot extends format_1.default {
-    static formats(domNode) {
-        let tagName = Registry.query(BlockBlot.blotName).tagName;
+var format_1 = __webpack_require__(3);
+var Registry = __webpack_require__(0);
+var BlockBlot = /** @class */ (function (_super) {
+    __extends(BlockBlot, _super);
+    function BlockBlot() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    BlockBlot.formats = function (domNode) {
+        var tagName = Registry.query(BlockBlot.blotName).tagName;
         if (domNode.tagName === tagName)
             return undefined;
-        return super.formats(domNode);
-    }
-    format(name, value) {
+        return _super.formats.call(this, domNode);
+    };
+    BlockBlot.prototype.format = function (name, value) {
         if (Registry.query(name, Registry.Scope.BLOCK) == null) {
             return;
         }
@@ -1412,40 +1581,41 @@ class BlockBlot extends format_1.default {
             this.replaceWith(BlockBlot.blotName);
         }
         else {
-            super.format(name, value);
+            _super.prototype.format.call(this, name, value);
         }
-    }
-    formatAt(index, length, name, value) {
+    };
+    BlockBlot.prototype.formatAt = function (index, length, name, value) {
         if (Registry.query(name, Registry.Scope.BLOCK) != null) {
             this.format(name, value);
         }
         else {
-            super.formatAt(index, length, name, value);
+            _super.prototype.formatAt.call(this, index, length, name, value);
         }
-    }
-    insertAt(index, value, def) {
+    };
+    BlockBlot.prototype.insertAt = function (index, value, def) {
         if (def == null || Registry.query(value, Registry.Scope.INLINE) != null) {
             // Insert text or inline
-            super.insertAt(index, value, def);
+            _super.prototype.insertAt.call(this, index, value, def);
         }
         else {
-            let after = this.split(index);
-            let blot = Registry.create(value, def);
+            var after = this.split(index);
+            var blot = Registry.create(value, def);
             after.parent.insertBefore(blot, after);
         }
-    }
-    update(mutations, context) {
+    };
+    BlockBlot.prototype.update = function (mutations, context) {
         if (navigator.userAgent.match(/Trident/)) {
             this.build();
         }
         else {
-            super.update(mutations, context);
+            _super.prototype.update.call(this, mutations, context);
         }
-    }
-}
-BlockBlot.blotName = 'block';
-BlockBlot.scope = Registry.Scope.BLOCK_BLOT;
-BlockBlot.tagName = 'P';
+    };
+    BlockBlot.blotName = 'block';
+    BlockBlot.scope = Registry.Scope.BLOCK_BLOT;
+    BlockBlot.tagName = 'P';
+    return BlockBlot;
+}(format_1.default));
 exports.default = BlockBlot;
 
 
@@ -1455,30 +1625,45 @@ exports.default = BlockBlot;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const leaf_1 = __webpack_require__(4);
-class EmbedBlot extends leaf_1.default {
-    static formats(domNode) {
-        return undefined;
+var leaf_1 = __webpack_require__(4);
+var EmbedBlot = /** @class */ (function (_super) {
+    __extends(EmbedBlot, _super);
+    function EmbedBlot() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    format(name, value) {
+    EmbedBlot.formats = function (domNode) {
+        return undefined;
+    };
+    EmbedBlot.prototype.format = function (name, value) {
         // super.formatAt wraps, which is what we want in general,
         // but this allows subclasses to overwrite for formats
         // that just apply to particular embeds
-        super.formatAt(0, this.length(), name, value);
-    }
-    formatAt(index, length, name, value) {
+        _super.prototype.formatAt.call(this, 0, this.length(), name, value);
+    };
+    EmbedBlot.prototype.formatAt = function (index, length, name, value) {
         if (index === 0 && length === this.length()) {
             this.format(name, value);
         }
         else {
-            super.formatAt(index, length, name, value);
+            _super.prototype.formatAt.call(this, index, length, name, value);
         }
-    }
-    formats() {
+    };
+    EmbedBlot.prototype.formats = function () {
         return this.statics.formats(this.domNode);
-    }
-}
+    };
+    return EmbedBlot;
+}(leaf_1.default));
 exports.default = EmbedBlot;
 
 
@@ -1488,47 +1673,59 @@ exports.default = EmbedBlot;
 
 "use strict";
 
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const leaf_1 = __webpack_require__(4);
-const Registry = __webpack_require__(0);
-class TextBlot extends leaf_1.default {
-    constructor(node) {
-        super(node);
-        this.text = this.statics.value(this.domNode);
+var leaf_1 = __webpack_require__(4);
+var Registry = __webpack_require__(0);
+var TextBlot = /** @class */ (function (_super) {
+    __extends(TextBlot, _super);
+    function TextBlot(node) {
+        var _this = _super.call(this, node) || this;
+        _this.text = _this.statics.value(_this.domNode);
+        return _this;
     }
-    static create(value) {
+    TextBlot.create = function (value) {
         return document.createTextNode(value);
-    }
-    static value(domNode) {
-        let text = domNode.data;
+    };
+    TextBlot.value = function (domNode) {
+        var text = domNode.data;
         // @ts-ignore
         if (text['normalize'])
             text = text['normalize']();
         return text;
-    }
-    deleteAt(index, length) {
+    };
+    TextBlot.prototype.deleteAt = function (index, length) {
         this.domNode.data = this.text = this.text.slice(0, index) + this.text.slice(index + length);
-    }
-    index(node, offset) {
+    };
+    TextBlot.prototype.index = function (node, offset) {
         if (this.domNode === node) {
             return offset;
         }
         return -1;
-    }
-    insertAt(index, value, def) {
+    };
+    TextBlot.prototype.insertAt = function (index, value, def) {
         if (def == null) {
             this.text = this.text.slice(0, index) + value + this.text.slice(index);
             this.domNode.data = this.text;
         }
         else {
-            super.insertAt(index, value, def);
+            _super.prototype.insertAt.call(this, index, value, def);
         }
-    }
-    length() {
+    };
+    TextBlot.prototype.length = function () {
         return this.text.length;
-    }
-    optimize(context) {
-        super.optimize(context);
+    };
+    TextBlot.prototype.optimize = function (context) {
+        _super.prototype.optimize.call(this, context);
         this.text = this.statics.value(this.domNode);
         if (this.text.length === 0) {
             this.remove();
@@ -1537,35 +1734,39 @@ class TextBlot extends leaf_1.default {
             this.insertAt(this.length(), this.next.value());
             this.next.remove();
         }
-    }
-    position(index, inclusive = false) {
+    };
+    TextBlot.prototype.position = function (index, inclusive) {
+        if (inclusive === void 0) { inclusive = false; }
         return [this.domNode, index];
-    }
-    split(index, force = false) {
+    };
+    TextBlot.prototype.split = function (index, force) {
+        if (force === void 0) { force = false; }
         if (!force) {
             if (index === 0)
                 return this;
             if (index === this.length())
                 return this.next;
         }
-        let after = Registry.create(this.domNode.splitText(index));
+        var after = Registry.create(this.domNode.splitText(index));
         this.parent.insertBefore(after, this.next);
         this.text = this.statics.value(this.domNode);
         return after;
-    }
-    update(mutations, context) {
-        if (mutations.some(mutation => {
-            return mutation.type === 'characterData' && mutation.target === this.domNode;
+    };
+    TextBlot.prototype.update = function (mutations, context) {
+        var _this = this;
+        if (mutations.some(function (mutation) {
+            return mutation.type === 'characterData' && mutation.target === _this.domNode;
         })) {
             this.text = this.statics.value(this.domNode);
         }
-    }
-    value() {
+    };
+    TextBlot.prototype.value = function () {
         return this.text;
-    }
-}
-TextBlot.blotName = 'text';
-TextBlot.scope = Registry.Scope.INLINE_BLOT;
+    };
+    TextBlot.blotName = 'text';
+    TextBlot.scope = Registry.Scope.INLINE_BLOT;
+    return TextBlot;
+}(leaf_1.default));
 exports.default = TextBlot;
 
 
