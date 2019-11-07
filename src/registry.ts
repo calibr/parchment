@@ -81,7 +81,7 @@ export function query(
       match = types['inline'];
     }
   } else if (query instanceof HTMLElement) {
-    let names = (query.getAttribute('class') || '').split(/\s+/);
+    let names = Array.from(query.classList);
     for (let i in names) {
       match = classes[names[i]];
       if (match) break;
