@@ -232,18 +232,18 @@ function attachOnce(blot) {
     if (blot._isAttached) {
         return;
     }
-    blot.attach();
     blot._isDetached = false;
     blot._isAttached = true;
+    blot.attach();
 }
 exports.attachOnce = attachOnce;
 function detachOnce(blot) {
     if (blot._isDetached) {
         return;
     }
-    blot.detach();
     blot._isDetached = true;
     blot._isAttached = false;
+    blot.detach();
 }
 exports.detachOnce = detachOnce;
 function setFindByTagFn(fn) {
