@@ -1120,6 +1120,7 @@ var Parchment = {
     find: Registry.find,
     query: Registry.query,
     register: Registry.register,
+    setFindByTagFn: Registry.setFindByTagFn,
     Container: container_1.default,
     Format: format_1.default,
     Leaf: leaf_1.default,

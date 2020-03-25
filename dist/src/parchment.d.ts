@@ -17,6 +17,7 @@ declare let Parchment: {
     find: typeof Registry.find;
     query: typeof Registry.query;
     register: typeof Registry.register;
+    setFindByTagFn: typeof Registry.setFindByTagFn;
     Container: typeof ContainerBlot;
     Format: typeof FormatBlot;
     Leaf: typeof LeafBlot;
