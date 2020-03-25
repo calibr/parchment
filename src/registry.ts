@@ -20,10 +20,13 @@ export class ParchmentError extends Error {
   }
 }
 
+type FindByTagFn = (tagName: string, node: HTMLElement) => any
+
 let attributes: { [key: string]: Attributor } = {};
 let classes: { [key: string]: BlotConstructor } = {};
 let tags: { [key: string]: BlotConstructor } = {};
 let types: { [key: string]: Attributor | BlotConstructor } = {};
+let findByTagFn: FindByTagFn = () => {};
 
 export const DATA_KEY = '__blot';
 
@@ -86,7 +89,7 @@ export function query(
       match = classes[names[i]];
       if (match) break;
     }
-    match = match || tags[query.tagName];
+    match = match || createByTagFn(query.tagName, query) || tags[query.tagName];
   }
   if (match == null) return null;
   // @ts-ignore
@@ -149,4 +152,8 @@ export function detachOnce(blot: Blot): void {
   blot.detach();
   blot._isDetached = true;
   blot._isAttached = false;
+}
+
+export function setFindByTagFn(fn: FindByTagFn): void {
+  findByTagFn = fn;
 }
