@@ -107,6 +107,7 @@ var attributes = {};
 var classes = {};
 var tags = {};
 var types = {};
+var findByTagFn = function () { };
 exports.DATA_KEY = '__blot';
 var Scope;
 (function (Scope) {
@@ -171,7 +172,7 @@ function query(query, scope) {
             if (match)
                 break;
         }
-        match = match || tags[query.tagName];
+        match = match || findByTagFn(query.tagName, query) || tags[query.tagName];
     }
     if (match == null)
         return null;
@@ -245,6 +246,10 @@ function detachOnce(blot) {
     blot._isAttached = false;
 }
 exports.detachOnce = detachOnce;
+function setFindByTagFn(fn) {
+    findByTagFn = fn;
+}
+exports.setFindByTagFn = setFindByTagFn;
 
 
 /***/ }),

@@ -89,7 +89,7 @@ export function query(
       match = classes[names[i]];
       if (match) break;
     }
-    match = match || createByTagFn(query.tagName, query) || tags[query.tagName];
+    match = match || findByTagFn(query.tagName, query) || tags[query.tagName];
   }
   if (match == null) return null;
   // @ts-ignore

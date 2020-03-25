@@ -11,6 +11,7 @@ export declare class ParchmentError extends Error {
     stack: string;
     constructor(message: string);
 }
+declare type FindByTagFn = (tagName: string, node: HTMLElement) => any;
 export declare const DATA_KEY = "__blot";
 export declare enum Scope {
     TYPE = 3,
@@ -31,3 +32,5 @@ export declare function query(query: string | Node | Scope, scope?: Scope): Attr
 export declare function register(...Definitions: any[]): any;
 export declare function attachOnce(blot: Blot): void;
 export declare function detachOnce(blot: Blot): void;
+export declare function setFindByTagFn(fn: FindByTagFn): void;
+export {};
