@@ -229,21 +229,25 @@ function register() {
 exports.register = register;
 function attachOnce(blot) {
     blot.ensureScrollIsAssigned();
-    if (blot._isAttached) {
+    if (blot._isAttached || blot._isAttaching) {
         return;
     }
+    blot._isAttaching = true;
+    blot.attach();
+    blot._isAttaching = false;
     blot._isDetached = false;
     blot._isAttached = true;
-    blot.attach();
 }
 exports.attachOnce = attachOnce;
 function detachOnce(blot) {
-    if (blot._isDetached) {
+    if (blot._isDetached || blot._isDetaching) {
         return;
     }
+    blot._isDetaching = true;
+    blot.detach();
+    blot._isDetaching = false;
     blot._isDetached = true;
     blot._isAttached = false;
-    blot.detach();
 }
 exports.detachOnce = detachOnce;
 function setFindByTagFn(fn) {
@@ -533,7 +537,9 @@ var ContainerBlot = /** @class */ (function (_super) {
             if (blot == null)
                 return;
             if (blot.domNode.parentNode == null || blot.domNode.parentNode === _this.domNode) {
-                blot.detach();
+                if (blot.isAttached()) {
+                    blot.detach();
+                }
             }
         });
         addedNodes
@@ -731,7 +737,9 @@ var ShadowBlot = /** @class */ (function () {
     function ShadowBlot(domNode) {
         this.domNode = domNode;
         this._isAttached = false;
-        this._isDetached = false;
+        this._isAttaching = false;
+        this._isDetached = true;
+        this._isDetaching = false;
         // @ts-ignore
         this.domNode[Registry.DATA_KEY] = { blot: this };
     }
@@ -772,6 +780,9 @@ var ShadowBlot = /** @class */ (function () {
             node.classList.add(this.className);
         }
         return node;
+    };
+    ShadowBlot.prototype.isAttached = function () {
+        return this._isAttached;
     };
     ShadowBlot.prototype.attach = function () { };
     ShadowBlot.prototype.ensureScrollIsAssigned = function () {

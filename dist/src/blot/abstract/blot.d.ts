@@ -2,12 +2,15 @@ import LinkedList from '../../collection/linked-list';
 import LinkedNode from '../../collection/linked-node';
 export interface Blot extends LinkedNode {
     _isAttached: boolean;
+    _isAttaching: boolean;
     _isDetached: boolean;
+    _isDetaching: boolean;
     scroll: Parent;
     parent: Parent;
     prev: Blot;
     next: Blot;
     domNode: Node;
+    isAttached(): boolean;
     attach(): void;
     ensureScrollIsAssigned(): void;
     clone(): Blot;
