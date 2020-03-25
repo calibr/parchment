@@ -140,18 +140,18 @@ export function attachOnce(blot: Blot): void {
   if (blot._isAttached) {
     return;
   }
-  blot.attach();
   blot._isDetached = false;
   blot._isAttached = true;
+  blot.attach();
 }
 
 export function detachOnce(blot: Blot): void {
   if (blot._isDetached) {
     return;
   }
-  blot.detach();
   blot._isDetached = true;
   blot._isAttached = false;
+  blot.detach();
 }
 
 export function setFindByTagFn(fn: FindByTagFn): void {
