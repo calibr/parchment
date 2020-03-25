@@ -8,7 +8,9 @@ class ShadowBlot implements Blot {
   static tagName: string;
 
   _isAttached: boolean = false;
-  _isDetached: boolean = false;
+  _isAttaching: boolean = false;
+  _isDetached: boolean = true;
+  _isDetaching: boolean = false;
 
   // @ts-ignore
   prev: Blot;
@@ -55,6 +57,10 @@ class ShadowBlot implements Blot {
   constructor(public domNode: Node) {
     // @ts-ignore
     this.domNode[Registry.DATA_KEY] = { blot: this };
+  }
+
+  isAttached () {
+    return this._isAttached
   }
 
   attach() {}

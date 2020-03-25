@@ -3,7 +3,9 @@ import LinkedNode from '../../collection/linked-node';
 
 export interface Blot extends LinkedNode {
   _isAttached: boolean;
+  _isAttaching: boolean;
   _isDetached: boolean;
+  _isDetaching: boolean;
 
   scroll: Parent;
   parent: Parent;
@@ -11,6 +13,7 @@ export interface Blot extends LinkedNode {
   next: Blot;
   domNode: Node;
 
+  isAttached(): boolean;
   attach(): void;
   ensureScrollIsAssigned(): void;
   clone(): Blot;

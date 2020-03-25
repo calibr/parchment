@@ -137,21 +137,25 @@ export function register(...Definitions: any[]): any {
 
 export function attachOnce(blot: Blot): void {
   blot.ensureScrollIsAssigned();
-  if (blot._isAttached) {
+  if (blot._isAttached || blot._isAttaching) {
     return;
   }
+  blot._isAttaching = true;
+  blot.attach();
+  blot._isAttaching = false;
   blot._isDetached = false;
   blot._isAttached = true;
-  blot.attach();
 }
 
 export function detachOnce(blot: Blot): void {
-  if (blot._isDetached) {
+  if (blot._isDetached || blot._isDetaching) {
     return;
   }
+  blot._isDetaching = true;
+  blot.detach();
+  blot._isDetaching = false;
   blot._isDetached = true;
   blot._isAttached = false;
-  blot.detach();
 }
 
 export function setFindByTagFn(fn: FindByTagFn): void {

@@ -222,7 +222,9 @@ class ContainerBlot extends ShadowBlot implements Parent {
       let blot = Registry.find(node);
       if (blot == null) return;
       if (blot.domNode.parentNode == null || blot.domNode.parentNode === this.domNode) {
-        blot.detach();
+        if (blot.isAttached()) {
+          blot.detach();
+        }
       }
     });
     addedNodes
